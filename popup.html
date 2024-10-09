@@ -1,19 +1,28 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Настройки прокси</title>
+    <link rel="stylesheet" type="text/css" href="popup.css">
 </head>
 <body>
-    <h1>Настройки прокси</h1>
-    <label for="proxyHost">Хост:</label>
-    <input type="text" id="proxyHost" placeholder="Введите хост прокси"/>
-    <label for="proxyPort">Порт:</label>
-    <input type="text" id="proxyPort" placeholder="Введите порт прокси"/>
-    <label for="allowedDomains">Разрешенные домены (через запятую):</label>
-    <input type="text" id="allowedDomains" placeholder="example.com, *.example.org"/>
-    <button id="setProxy">Установить прокси</button>
+    <h1>Proxy Settings</h1>
+    <div>
+        <label for="proxyHost">Proxy Host:</label>
+        <input type="text" id="proxyHost">
+    </div>
+    <div>
+        <label for="proxyPort">Proxy Port:</label>
+        <input type="number" id="proxyPort">
+    </div>
+    <div>
+        <label for="allowedDomains">Allowed Domains:</label>
+        <textarea id="allowedDomains" placeholder="exapmle.org, example.com, ..."></textarea>
+    </div>
+    <button id="setProxy">Set Proxy</button>
+    <button id="disableProxy">Disable Proxy</button>
+    <div id="currentStatusContainer">
+        <span id="currentStatus">State: INACTIVE</span>
+        <span id="statusIcon"></span>
+    </div>
     <script src="popup.js"></script>
 </body>
 </html>

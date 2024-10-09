@@ -1,0 +1,48 @@
+body {
+    width: 320px;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+input[type="text"], input[type="number"] {
+    width: calc(100% - 20px);
+    padding: 5px;
+    margin-bottom: 10px;
+}
+
+#allowedDomains {
+    width: calc(100% - 10px);
+    height: 100px;
+    font-size: 15px;
+    resize: vertical;
+}
+
+button {
+    padding: 5px 10px;
+    margin-right: 10px;
+    cursor: pointer;
+    width: calc(100% / 2 - 15px);
+}
+
+#currentStatusContainer {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+#statusIcon {
+    margin-left: 10px;
+}
+
+.status.active {
+    color: green;
+}
+
+.status.inactive {
+    color: gray;
+}
+
+.status.error {
+    color: red;
+}
