@@ -35,7 +35,7 @@ const iconFrames = [
     'icons/active_icon16.png',
 ];
 
-function startSwitchIcon() {
+function startIconSwitcher() {
     return setInterval(() => {
         updateIcon(true);
     }, 500);
@@ -45,6 +45,7 @@ function stopIconSwitcher(intervalId) {
     if (intervalId) {
         clearInterval(intervalId);
     }
+    updateIcon(false);
 }
 
 function updateIcon(isProxyActive) {

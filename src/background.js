@@ -1,57 +1,73 @@
 importScripts('helpers/backgroundHelper.js');
 
+const storageDataProps = ['proxyHost', 'proxyPort', 'allowedDomains'];
+const storageProps = [...storageDataProps, 'isProxyActive'];
+
 let allowedDomains = [];
-let isProxyActive = false;
 let intervalId = null;
+
+chrome.storage.onChanged.addListener(async (changes, namespace) => {
+    if (namespace !== 'local')
+        return;
+
+    if (!storageDataProps.some(key => key in changes))
+        return;
+
+    chrome.storage.local.get(storageProps, (data) => {
+        if (!data.isProxyActive)
+            return;
+
+        chrome.storage.local.get(storageDataProps, (items) => {
+            restartProxyIfActive(items);
+        });
+    });
+});
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "startProxy") {
-        startProxy(request.host, request.port);
-        intervalId = startSwitchIcon();
-        sendResponse({ status: "success" });
+        chrome.storage.local.get(storageProps, (data) => {
+            if (!data.proxyHost || !data.proxyPort) {
+                sendResponse({ status: "failure" });
+                return;
+            }
+
+            startProxy(data.proxyHost, data.proxyPort, data.allowedDomains);
+            intervalId = startIconSwitcher();
+            sendResponse({ status: "success" });
+        });
         return true;
     }
 
     if (request.action === "stopProxy") {
-        stopProxy(request)
+        stopProxy();
         stopIconSwitcher(intervalId);
         sendResponse({ status: "success" });
-        return true;
-    }
-
-    if (request.action === "saveProxySettings") {
-        allowedDomains = request.domains.split(",").map(domain => domain.trim()).filter(Boolean);
-        restartProxyIfActive(request)
-        sendResponse({ status: "success" });
-        return true;
-    }
-
-    if (request.action === "getProxyStatus") {
-        sendResponse({ status: "success", isActive: isProxyActive });
         return true;
     }
 
     return false;
 });
 
-
-function startProxy(host, port) {
-    config = getPacConfig(host, port, allowedDomains);
+function startProxy(host, port, allowedDomains) {
+    const splitedAllowedDomains = allowedDomains.split(",").map(domain => domain.trim()).filter(Boolean);
+    config = getPacConfig(host, port, splitedAllowedDomains);
     chrome.proxy.settings.set(config, () => { });
     console.log(`Proxy set to: ${host}:${port}`);
-    isProxyActive = true;
 }
 
 function stopProxy() {
     chrome.proxy.settings.clear({ scope: "regular" }, () => { });
     console.log("Proxy disabled.");
-    isProxyActive = false;
 }
 
-function restartProxyIfActive(request) {
-    if (isProxyActive === false)
+function restartProxyIfActive(data) {
+    stopProxy();
+    startProxy(data.host, data.port, data.allowedDomains);
+}
+
+chrome.storage.local.get(['isProxyActive'], (data) => {
+    if (!data.isProxyActive)
         return;
 
-    stopProxy();
-    startProxy(request.host, request.port);
-}
+    intervalId = startIconSwitcher();
+});

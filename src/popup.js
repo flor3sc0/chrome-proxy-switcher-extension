@@ -16,73 +16,32 @@ function saveOptions() {
         proxyHost: proxyHost,
         proxyPort: proxyPort,
         allowedDomains: allowedDomains
-    }, function () {
-        console.log('Options saved.');
     });
-
-    if (proxyHost && !isNaN(proxyPort)) {
-        chrome.runtime.sendMessage(
-            { action: "saveProxySettings", host: proxyHost, port: proxyPort, domains: allowedDomains },
-            (response) => {
-                if (response.status !== "success") {
-                    console.error("Error saving proxy settings.");
-                }
-            }
-        );
-    }
 }
 
 function restoreOptions() {
-    chrome.storage.local.get(['proxyHost', 'proxyPort', 'allowedDomains', 'proxyActive'], function (items) {
+    chrome.storage.local.get(['proxyHost', 'proxyPort', 'allowedDomains', 'isProxyActive'], function (items) {
         document.getElementById('proxyHost').value = items.proxyHost || '';
         document.getElementById('proxyPort').value = items.proxyPort || '';
         document.getElementById('allowedDomains').value = items.allowedDomains || '';
-        updateCurrentStatus(items.proxyActive);
+        updateCurrentStatus(items.isProxyActive);
     });
 }
 
 function startProxy() {
-    let proxyHost = document.getElementById('proxyHost').value;
-    let proxyPort = document.getElementById('proxyPort').value;
-    let allowedDomains = document.getElementById('allowedDomains').value;
-
-    if (!proxyHost || !proxyPort) {
-        console.log('Proxy host and port are required.');
-        return;
-    }
-
-    chrome.runtime.sendMessage({
-        action: "startProxy",
-        host: proxyHost,
-        port: proxyPort,
-        allowedDomains: allowedDomains
-    }, function (response) {
+    chrome.runtime.sendMessage({ action: "startProxy" }, (response) => {
         if (response.status === "success") {
-            chrome.storage.local.set({ proxyActive: true }, function () {
-                updateCurrentStatus(true);
-                console.log('Proxy set successfully.');
-            });
-        } else {
-            chrome.storage.local.set({ proxyActive: false }, function () {
-                updateCurrentStatus(false);
-                console.log('Failed to set proxy.');
-            });
+            chrome.storage.local.set({ isProxyActive: true });
+            updateCurrentStatus(true);
         }
     });
 }
 
 function stopProxy() {
-    chrome.runtime.sendMessage({ action: "stopProxy" }, function (response) {
+    chrome.runtime.sendMessage({ action: "stopProxy" }, (response) => {
         if (response.status === "success") {
-            chrome.storage.local.set({ proxyActive: false }, function () {
-                updateCurrentStatus(false);
-                console.log('Proxy disabled successfully.');
-            });
-        } else {
-            chrome.storage.local.set({ proxyActive: true }, function () {
-                updateCurrentStatus(true);
-                console.log('Failed to disable proxy.');
-            });
+            chrome.storage.local.set({ isProxyActive: false });
+            updateCurrentStatus(false);
         }
     });
 }
