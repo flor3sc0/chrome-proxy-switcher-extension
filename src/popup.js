@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     restoreOptions();
-    document.getElementById('setProxy').addEventListener('click', setProxy);
-    document.getElementById('disableProxy').addEventListener('click', disableProxy);
+    document.getElementById('startProxy').addEventListener('click', startProxy);
+    document.getElementById('stopProxy').addEventListener('click', stopProxy);
     document.getElementById('proxyHost').addEventListener('input', saveOptions);
     document.getElementById('proxyPort').addEventListener('input', saveOptions);
     document.getElementById('allowedDomains').addEventListener('input', saveOptions);
@@ -41,7 +41,7 @@ function restoreOptions() {
     });
 }
 
-function setProxy() {
+function startProxy() {
     let proxyHost = document.getElementById('proxyHost').value;
     let proxyPort = document.getElementById('proxyPort').value;
     let allowedDomains = document.getElementById('allowedDomains').value;
@@ -52,7 +52,7 @@ function setProxy() {
     }
 
     chrome.runtime.sendMessage({
-        action: "setProxy",
+        action: "startProxy",
         host: proxyHost,
         port: proxyPort,
         allowedDomains: allowedDomains
@@ -71,8 +71,8 @@ function setProxy() {
     });
 }
 
-function disableProxy() {
-    chrome.runtime.sendMessage({ action: "disableProxy" }, function (response) {
+function stopProxy() {
+    chrome.runtime.sendMessage({ action: "stopProxy" }, function (response) {
         if (response.status === "success") {
             chrome.storage.local.set({ proxyActive: false }, function () {
                 updateCurrentStatus(false);
