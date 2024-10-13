@@ -30,7 +30,7 @@ label {
     margin-right: 10px;
 }
 
-#allowedDomains {
+#customWhiteList {
     width: calc(100% - 10px);
     height: 120px;
     font-size: 15px;

@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     restoreOptions();
     document.getElementById('proxyHost').addEventListener('input', saveOptions);
     document.getElementById('proxyPort').addEventListener('input', saveOptions);
-    document.getElementById('allowedDomains').addEventListener('input', saveOptions);
+    document.getElementById('customWhiteList').addEventListener('input', saveOptions);
     document.getElementById('useAnywhere').addEventListener('change', saveOptions);
     document.getElementById('addYbDomains').addEventListener('change', saveOptions);
     document.getElementById('toggleProxy').addEventListener('change', toggleProxy);
@@ -13,14 +13,14 @@ function saveOptions() {
     const proxyPort = document.getElementById('proxyPort').value;
     const useAnywhere = document.getElementById('useAnywhere').checked;
     const addYbDomains = document.getElementById('addYbDomains').checked;
-    const allowedDomains = document.getElementById('allowedDomains').value;
+    const customWhiteList = document.getElementById('customWhiteList').value;
 
     updateHtmlWhitelistContainer(useAnywhere);
 
     chrome.storage.local.set({
         proxyHost: proxyHost,
         proxyPort: proxyPort,
-        allowedDomains: allowedDomains,
+        customWhiteList: customWhiteList,
         useAnywhere: useAnywhere,
         addYbDomains: addYbDomains,
     });
@@ -34,7 +34,7 @@ function restoreOptions() {
         document.getElementById('proxyPort').value = items.proxyPort || '';
         document.getElementById('useAnywhere').checked = items.useAnywhere || false;
         document.getElementById('addYbDomains').checked = items.addYbDomains || false;
-        document.getElementById('allowedDomains').value = items.allowedDomains || '';
+        document.getElementById('customWhiteList').value = items.customWhiteList || '';
 
         updateHtmlWhitelistContainer(items.useAnywhere);
         updateCurrentStatus(items.isProxyActive);

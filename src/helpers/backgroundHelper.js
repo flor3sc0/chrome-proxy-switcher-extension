@@ -1,8 +1,8 @@
-function buildWhitelist(allowedDomains, addYbDomains) {
-    let result = allowedDomains.split(",").map(domain => domain.trim()).filter(Boolean);
+function buildWhitelist(customWhiteList, addYbDomains) {
+    let result = customWhiteList.split(",").map(domain => domain.trim()).filter(Boolean);
 
     if (addYbDomains === true) {
-        result.push(...ybDomains)
+        result.push(...youtubeDomains)
     }
 
     return result;

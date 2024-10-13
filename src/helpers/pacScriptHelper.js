@@ -1,8 +1,8 @@
-function getPacConfig(host, port, allowedDomains, useAnywhere) {
+function getPacConfig(host, port, whiteList, useAnywhere) {
     let pacScriptData = generatePacScriptForAllDomains(host, port);
 
-    if (useAnywhere === false && allowedDomains.length !== 0) {
-        pacScriptData = generatePacScriptForOnlyAllowedDomains(host, port, allowedDomains);
+    if (useAnywhere === false && whiteList.length !== 0) {
+        pacScriptData = generatePacScriptForWhiteList(host, port, whiteList);
     }
 
     return {
@@ -24,13 +24,13 @@ function generatePacScriptForAllDomains(host, port) {
     `;
 }
 
-function generatePacScriptForOnlyAllowedDomains(host, port, allowedDomains) {
+function generatePacScriptForWhiteList(host, port, whiteList) {
     return `
     function FindProxyForURL(url, host) {
-        const allowedDomains = ${JSON.stringify(allowedDomains)};
+        const whiteList = ${JSON.stringify(whiteList)};
 
-        for (var i = 0; i < allowedDomains.length; i++) {
-            if (shExpMatch(host, allowedDomains[i])) {
+        for (var i = 0; i < whiteList.length; i++) {
+            if (shExpMatch(host, whiteList[i])) {
                 return "PROXY ${host}:${port}";
             }
         }

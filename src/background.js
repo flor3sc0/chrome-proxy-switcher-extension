@@ -22,7 +22,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 return;
             }
 
-            startProxy(data.proxyHost, data.proxyPort, data.allowedDomains, data.useAnywhere, data.addYbDomains);
+            startProxy(data.proxyHost, data.proxyPort, data.customWhiteList, data.useAnywhere, data.addYbDomains);
             intervalId = startIconSwitcher();
             sendResponse({ status: "success" });
         });
@@ -39,9 +39,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return false;
 });
 
-function startProxy(host, port, allowedDomains, useAnywhere, addYbDomains) {
-    const whitelist = buildWhitelist(allowedDomains, addYbDomains);
-    config = getPacConfig(host, port, whitelist, useAnywhere);
+function startProxy(host, port, customWhiteList, useAnywhere, addYbDomains) {
+    const whiteList = buildWhitelist(customWhiteList, addYbDomains);
+    config = getPacConfig(host, port, whiteList, useAnywhere);
     chrome.proxy.settings.set(config, () => { });
     console.log(`Proxy set to: ${host}:${port}`);
 }
@@ -56,7 +56,7 @@ function restartProxyIfActive(data) {
         return;
 
     stopProxy();
-    startProxy(data.proxyHost, data.proxyPort, data.allowedDomains, data.useAnywhere, data.addYbDomains);
+    startProxy(data.proxyHost, data.proxyPort, data.customWhiteList, data.useAnywhere, data.addYbDomains);
 }
 
 chrome.storage.local.get(['isProxyActive'], (data) => {

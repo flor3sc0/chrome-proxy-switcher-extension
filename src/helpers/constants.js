@@ -1,4 +1,4 @@
-const storageDataProps = ['proxyHost', 'proxyPort', 'allowedDomains', 'useAnywhere', 'addYbDomains'];
+const storageDataProps = ['proxyHost', 'proxyPort', 'customWhiteList', 'useAnywhere', 'addYbDomains'];
 const storageProps = [...storageDataProps, 'isProxyActive'];
 
 const iconFrames = [
@@ -6,13 +6,22 @@ const iconFrames = [
   'icons/active_icon16.png',
 ];
 
-const ybDomains = [
-  '*.googlevideo.com', 'youtube.com', 'youtu.be', 'yt.be', '*.googlevideo.com',
-  'ytimg.com', 'ggpht.com',
-  'gvt1.com', 'youtube-nocookie.com',
-  'youtube-ui.l.google.com', 'youtubeembeddedplayer.googleapis.com',
-  'youtube.googleapis.com', 'youtubei.googleapis.com',
-  'yt-video-upload.l.google.com', 'wide-youtube.l.google.com'
+const youtubeDomains = [
+  '*.googlevideo.com',
+  'youtube.com',
+  'youtu.be',
+  'yt.be',
+  '*.googlevideo.com',
+  'ytimg.com',
+  'ggpht.com',
+  'gvt1.com',
+  'youtube-nocookie.com',
+  'youtube-ui.l.google.com',
+  'youtubeembeddedplayer.googleapis.com',
+  'youtube.googleapis.com',
+  'youtubei.googleapis.com',
+  'yt-video-upload.l.google.com',
+  'wide-youtube.l.google.com'
 ];
 
 const activeSvg = `
