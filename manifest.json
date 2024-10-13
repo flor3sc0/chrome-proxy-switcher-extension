@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "Proxy Switch Extension",
+    "name": "Proxy Switch with white list Extension",
     "version": "1.0",
-    "description": "An extension to set a proxy server.",
+    "description": "An extension to set a proxy server, with white list.",
     "permissions": [
       "proxy",
       "tabs",
