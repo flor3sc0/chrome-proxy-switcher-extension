@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', () => {
     restoreOptions();
     document.getElementById('startProxy').addEventListener('click', startProxy);
     document.getElementById('stopProxy').addEventListener('click', stopProxy);
@@ -20,7 +20,7 @@ function saveOptions() {
 }
 
 function restoreOptions() {
-    chrome.storage.local.get(['proxyHost', 'proxyPort', 'allowedDomains', 'isProxyActive'], function (items) {
+    chrome.storage.local.get(['proxyHost', 'proxyPort', 'allowedDomains', 'isProxyActive'], (items) => {
         document.getElementById('proxyHost').value = items.proxyHost || '';
         document.getElementById('proxyPort').value = items.proxyPort || '';
         document.getElementById('allowedDomains').value = items.allowedDomains || '';
@@ -47,44 +47,19 @@ function stopProxy() {
 }
 
 function updateCurrentStatus(isActive) {
+    if (isActive === true) {
+        updateCurrentStatusHtml("ACTIVE", "active", activeSvg);
+        return;
+    }
+
+    updateCurrentStatusHtml("INACTIVE", "inactive", inactiveSvg);
+}
+
+function updateCurrentStatusHtml(statusText, statusClass, svg) {
     let statusDiv = document.getElementById('currentStatus');
     let statusIcon = document.getElementById('statusIcon');
 
-    if (isActive === true) {
-        statusDiv.textContent = "State: ACTIVE";
-        statusDiv.className = "status active";
-        statusIcon.innerHTML = activeSvg;
-    } else if (isActive === false) {
-        statusDiv.textContent = "State: INACTIVE";
-        statusDiv.className = "status inactive";
-        statusIcon.innerHTML = inactiveSvg;
-    } else {
-        statusDiv.textContent = "State: ERROR";
-        statusDiv.className = "status error";
-        statusIcon.innerHTML = errorSvg;
-    }
+    statusDiv.textContent = `State: ${statusText}`;
+    statusDiv.className = `status ${statusClass}`;
+    statusIcon.innerHTML = svg;
 }
-
-const activeSvg = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <circle cx="12" cy="12" r="10" stroke="green" stroke-width="2" fill="none" />
-  <path d="M10 12l2 2 4-4" stroke="green" stroke-width="2" fill="none" />
-  <animate attributeType="CSS" attributeName="opacity" from="1" to="0" dur="1.5s" repeatCount="indefinite"/>
-</svg>
-`;
-
-const inactiveSvg = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <circle cx="12" cy="12" r="10" stroke="gray" stroke-width="2" fill="none" />
-  <path d="M8 12h8" stroke="gray" stroke-width="2" fill="none" />
-</svg>
-`;
-
-const errorSvg = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <circle cx="12" cy="12" r="10" stroke="red" stroke-width="2" fill="none" />
-  <path d="M12 8v4" stroke="red" stroke-width="2" fill="none" />
-  <path d="M12 16h0" stroke="red" stroke-width="2" fill="none" />
-  <animate attributeType="CSS" attributeName="opacity" from="1" to="0" dur="0.5s" repeatCount="indefinite"/>
-</svg>
-`;
