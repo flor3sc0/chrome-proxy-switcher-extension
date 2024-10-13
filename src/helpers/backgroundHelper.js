@@ -11,7 +11,7 @@ function buildWhitelist(customWhiteList, addYbDomains) {
 function startIconSwitcher() {
     return setInterval(() => {
         updateIcon(true);
-    }, 500);
+    }, 1000);
 }
 
 function stopIconSwitcher(intervalId) {

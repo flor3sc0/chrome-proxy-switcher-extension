@@ -19,16 +19,18 @@ label {
     font-size: 15px;
 }
 
-.status-container {
+#toggle-container {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
 }
 
-#proxyStatusLabel {
-    margin-right: 10px;
-}
+#settings-container, #toggle-container {
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    padding: 10px;
+  }
 
 #customWhiteList {
     width: calc(100% - 10px);
@@ -37,7 +39,7 @@ label {
     resize: vertical;
 }
 
-#currentStatusContainer {
+#status-container {
     display: flex;
     align-items: center;
     margin-top: 10px;
