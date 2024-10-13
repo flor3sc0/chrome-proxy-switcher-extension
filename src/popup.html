@@ -6,6 +6,16 @@
 </head>
 
 <body>
+    <div class="status-container">
+        <label class="switch">
+            <input type="checkbox" id="toggleProxy">
+            <span class="slider round"></span>
+        </label>
+        <div id="currentStatusContainer">
+            <span id="currentStatus">State: INACTIVE</span>
+            <span id="statusIcon"></span>
+        </div>
+    </div>
     <h1>Proxy Settings</h1>
     <div>
         <label for="proxyHost">Proxy Host:</label>
@@ -16,17 +26,21 @@
         <input type="number" id="proxyPort">
     </div>
     <div>
-        <label for="allowedDomains">Allowed Domains:</label>
-        <textarea id="allowedDomains" placeholder="exapmle.org, example.com, ..."></textarea>
+        <input type="checkbox" id="useAnywhere">
+        <label for="useAnywhere">Use Proxy anywhere</label>
     </div>
-    <button id="startProxy">Start Proxy</button>
-    <button id="stopProxy">Stop Proxy</button>
-    <div id="currentStatusContainer">
-        <span id="currentStatus">State: INACTIVE</span>
-        <span id="statusIcon"></span>
+    <div id="whitelist-container">
+        <div>
+            <input type="checkbox" id="addYbDomains">
+            <label for="addYbDomains">Add Youtube domains to whitelist</label>
+        </div>
+        <div>
+            <label for="allowedDomains"> Custom whitelist:</label>
+            <textarea id="allowedDomains" placeholder="exapmle.org, *.example.com, ..."></textarea>
+        </div>
     </div>
     <script src="popup.js"></script>
-    <script src="helpers/popupHelper.js"></script>
+    <script src="helpers/constants.js"></script>
 </body>
 
 </html>

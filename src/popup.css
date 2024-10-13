@@ -4,24 +4,37 @@ body {
     font-family: Arial, sans-serif;
 }
 
-input[type="text"], input[type="number"] {
+input[type="text"],
+input[type="number"] {
     width: calc(100% - 20px);
     padding: 5px;
     margin-bottom: 10px;
 }
 
-#allowedDomains {
-    width: calc(100% - 10px);
-    height: 100px;
-    font-size: 15px;
-    resize: vertical;
+input[type="checkbox"] {
+    margin-bottom: 12px;
 }
 
-button {
-    padding: 5px 10px;
+label {
+    font-size: 15px;
+}
+
+.status-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+#proxyStatusLabel {
     margin-right: 10px;
-    cursor: pointer;
-    width: calc(100% / 2 - 15px);
+}
+
+#allowedDomains {
+    width: calc(100% - 10px);
+    height: 120px;
+    font-size: 15px;
+    resize: vertical;
 }
 
 #currentStatusContainer {
@@ -45,4 +58,57 @@ button {
 
 .status.error {
     color: red;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked+.slider {
+    background-color: #2196F3;
+}
+
+input:checked+.slider:before {
+    transform: translateX(26px);
+}
+
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
 }

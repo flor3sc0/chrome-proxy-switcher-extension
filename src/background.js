@@ -1,9 +1,5 @@
-importScripts('helpers/backgroundHelper.js');
+importScripts('helpers/backgroundHelper.js', 'helpers/pacScriptHelper.js', 'helpers/constants.js');
 
-const storageDataProps = ['proxyHost', 'proxyPort', 'allowedDomains'];
-const storageProps = [...storageDataProps, 'isProxyActive'];
-
-let allowedDomains = [];
 let intervalId = null;
 
 chrome.storage.onChanged.addListener(async (changes, namespace) => {
@@ -14,12 +10,7 @@ chrome.storage.onChanged.addListener(async (changes, namespace) => {
         return;
 
     chrome.storage.local.get(storageProps, (data) => {
-        if (!data.isProxyActive)
-            return;
-
-        chrome.storage.local.get(storageDataProps, (items) => {
-            restartProxyIfActive(items);
-        });
+        restartProxyIfActive(data);
     });
 });
 
@@ -31,7 +22,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 return;
             }
 
-            startProxy(data.proxyHost, data.proxyPort, data.allowedDomains);
+            startProxy(data.proxyHost, data.proxyPort, data.allowedDomains, data.useAnywhere, data.addYbDomains);
             intervalId = startIconSwitcher();
             sendResponse({ status: "success" });
         });
@@ -48,9 +39,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return false;
 });
 
-function startProxy(host, port, allowedDomains) {
-    const splitedAllowedDomains = allowedDomains.split(",").map(domain => domain.trim()).filter(Boolean);
-    config = getPacConfig(host, port, splitedAllowedDomains);
+function startProxy(host, port, allowedDomains, useAnywhere, addYbDomains) {
+    const whitelist = buildWhitelist(allowedDomains, addYbDomains);
+    config = getPacConfig(host, port, whitelist, useAnywhere);
     chrome.proxy.settings.set(config, () => { });
     console.log(`Proxy set to: ${host}:${port}`);
 }
@@ -61,8 +52,11 @@ function stopProxy() {
 }
 
 function restartProxyIfActive(data) {
+    if (!data.isProxyActive)
+        return;
+
     stopProxy();
-    startProxy(data.host, data.port, data.allowedDomains);
+    startProxy(data.proxyHost, data.proxyPort, data.allowedDomains, data.useAnywhere, data.addYbDomains);
 }
 
 chrome.storage.local.get(['isProxyActive'], (data) => {
