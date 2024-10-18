@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" type="text/css" href="popup.css">
+</head>
+
+<body>
+    <div id="toggle-container">
+        <label class="switch">
+            <input type="checkbox" id="toggleProxy">
+            <span class="slider round"></span>
+        </label>
+        <div id="status-container">
+            <span id="currentStatus">State: INACTIVE</span>
+            <span id="statusIcon"></span>
+        </div>
+    </div>
+    <div id="settings-container">
+        <h3>Settings</h3>
+        <div>
+            <label for="proxyHost">Host:</label>
+            <input type="text" id="proxyHost">
+        </div>
+        <div>
+            <label for="proxyPort">Port:</label>
+            <input type="number" id="proxyPort">
+        </div>
+        <div>
+            <input type="checkbox" id="useAnywhere">
+            <label for="useAnywhere">Use anywhere</label>
+        </div>
+        <div id="whitelist-container">
+            <div>
+                <input type="checkbox" id="addYbDomains">
+                <label for="addYbDomains">Add <b>Youtube</b> domains to whitelist</label>
+            </div>
+            <div>
+                <label for="customWhiteList"> Custom whitelist:</label>
+                <textarea id="customWhiteList" placeholder="exapmle.org, *.example.com, ..."></textarea>
+            </div>
+        </div>
+    </div>
+    <script src="popup.js"></script>
+    <script src="helpers/constants.js"></script>
+</body>
+
+</html>
