@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('proxyHost').addEventListener('input', saveOptions);
     document.getElementById('proxyPort').addEventListener('input', saveOptions);
     document.getElementById('customWhiteList').addEventListener('input', saveOptions);
+    document.getElementById('customBlackList').addEventListener('input', saveOptions);
     document.getElementById('useAnywhere').addEventListener('change', saveOptions);
     document.getElementById('addYbDomains').addEventListener('change', saveOptions);
     document.getElementById('toggleProxy').addEventListener('change', toggleProxy);
@@ -14,13 +15,16 @@ function saveOptions() {
     const useAnywhere = document.getElementById('useAnywhere').checked;
     const addYbDomains = document.getElementById('addYbDomains').checked;
     const customWhiteList = document.getElementById('customWhiteList').value;
+    const customBlackList = document.getElementById('customBlackList').value;
 
-    updateHtmlWhitelistContainer(useAnywhere);
+    updateHtmlCustomListContainer('whitelist-container', useAnywhere);
+    updateHtmlCustomListContainer('blacklist-container', !useAnywhere);
 
     chrome.storage.local.set({
         proxyHost: proxyHost,
         proxyPort: proxyPort,
         customWhiteList: customWhiteList,
+        customBlackList: customBlackList,
         useAnywhere: useAnywhere,
         addYbDomains: addYbDomains,
     });
@@ -35,8 +39,10 @@ function restoreOptions() {
         document.getElementById('useAnywhere').checked = items.useAnywhere || false;
         document.getElementById('addYbDomains').checked = items.addYbDomains || false;
         document.getElementById('customWhiteList').value = items.customWhiteList || '';
+        document.getElementById('customBlackList').value = items.customBlackList || '';
 
-        updateHtmlWhitelistContainer(items.useAnywhere);
+        updateHtmlCustomListContainer('whitelist-container', items.useAnywhere);
+        updateHtmlCustomListContainer('blacklist-container', !items.useAnywhere);
         updateCurrentStatus(items.isProxyActive);
     });
 }
@@ -72,8 +78,8 @@ function updateHtmlStatusContainer(statusText, statusClass, svg) {
     statusIcon.innerHTML = svg;
 }
 
-function updateHtmlWhitelistContainer(isDisabled) {
-    const container = document.getElementById('whitelist-container');
+function updateHtmlCustomListContainer(containerId, isDisabled) {
+    const container = document.getElementById(containerId);
     const elements = container.querySelectorAll('input, textarea');
 
     elements.forEach(element => {

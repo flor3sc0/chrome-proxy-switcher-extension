@@ -39,6 +39,13 @@ label {
     resize: vertical;
 }
 
+#customBlackList {
+    width: calc(100% - 10px);
+    height: 120px;
+    font-size: 15px;
+    resize: vertical;
+}
+
 #status-container {
     display: flex;
     align-items: center;

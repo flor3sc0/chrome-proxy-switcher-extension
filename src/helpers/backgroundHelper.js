@@ -8,6 +8,10 @@ function buildWhitelist(customWhiteList, addYbDomains) {
     return result;
 }
 
+function buildBlacklist(customBlackList) {
+    return customBlackList.split(",").map(domain => domain.trim()).filter(Boolean);;
+}
+
 function startIconSwitcher() {
     return setInterval(() => {
         updateIcon(true);

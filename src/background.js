@@ -22,7 +22,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 return;
             }
 
-            startProxy(data.proxyHost, data.proxyPort, data.customWhiteList, data.useAnywhere, data.addYbDomains);
+            startProxy(
+                data.proxyHost,
+                data.proxyPort,
+                data.customWhiteList,
+                data.customBlackList,
+                data.useAnywhere,
+                data.addYbDomains);
             intervalId = startIconSwitcher();
             sendResponse({ status: "success" });
         });
@@ -39,9 +45,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return false;
 });
 
-function startProxy(host, port, customWhiteList, useAnywhere, addYbDomains) {
+function startProxy(host, port, customWhiteList, customBlackList, useAnywhere, addYbDomains) {
     const whiteList = buildWhitelist(customWhiteList, addYbDomains);
-    config = getPacConfig(host, port, whiteList, useAnywhere);
+    const blackList = buildBlacklist(customBlackList);
+    config = getPacConfig(host, port, whiteList, blackList, useAnywhere);
     chrome.proxy.settings.set(config, () => { });
     console.log(`Proxy set to: ${host}:${port}`);
 }
@@ -56,7 +63,13 @@ function restartProxyIfActive(data) {
         return;
 
     stopProxy();
-    startProxy(data.proxyHost, data.proxyPort, data.customWhiteList, data.useAnywhere, data.addYbDomains);
+    startProxy(
+        data.proxyHost,
+        data.proxyPort,
+        data.customWhiteList,
+        data.customBlackList,
+        data.useAnywhere,
+        data.addYbDomains);
 }
 
 chrome.storage.local.get(['isProxyActive'], (data) => {
