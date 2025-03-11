@@ -18,6 +18,7 @@ const youtubeDomains = [
   '*.googlevideo.com',
   '*.youtube.com',
   'youtu.be',
+  'youtube.com',
   'yt.be',
   '*.ytimg.com',
   '*.ggpht.com',
