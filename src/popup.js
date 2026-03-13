@@ -7,6 +7,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('useAnywhere').addEventListener('change', saveOptions);
     document.getElementById('addYbDomains').addEventListener('change', saveOptions);
     document.getElementById('toggleProxy').addEventListener('change', toggleProxy);
+    
+    // Добавляем слушатель для ошибок прокси
+    chrome.storage.onChanged.addListener((changes, namespace) => {
+        if (namespace === 'local' && 'proxyError' in changes) {
+            showError(changes.proxyError.newValue);
+        }
+    });
 });
 
 function saveOptions() {
@@ -49,13 +56,18 @@ function restoreOptions() {
 
 function toggleProxy(event) {
     const isChecked = event.target.checked;
-
     const action = isChecked ? "startProxy" : "stopProxy";
+
+    // Очищаем предыдущую ошибку
+    clearError();
 
     chrome.runtime.sendMessage({ action: action }, (response) => {
         if (response.status === "success") {
             chrome.storage.local.set({ isProxyActive: isChecked });
             updateCurrentStatus(isChecked);
+        } else {
+            showError(response.error || "Unknown error occurred");
+            event.target.checked = !isChecked; // Возвращаем переключатель в исходное положение
         }
     });
 }
@@ -85,4 +97,22 @@ function updateHtmlCustomListContainer(containerId, isDisabled) {
     elements.forEach(element => {
         element.disabled = isDisabled;
     });
+}
+
+function showError(errorMessage) {
+    const errorDiv = document.getElementById('error-message');
+    if (!errorDiv) {
+        const newErrorDiv = document.createElement('div');
+        newErrorDiv.id = 'error-message';
+        newErrorDiv.className = 'error';
+        document.querySelector('.container').prepend(newErrorDiv);
+    }
+    document.getElementById('error-message').textContent = errorMessage;
+}
+
+function clearError() {
+    const errorDiv = document.getElementById('error-message');
+    if (errorDiv) {
+        errorDiv.remove();
+    }
 }
