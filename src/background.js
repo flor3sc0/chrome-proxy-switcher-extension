@@ -1,132 +1,218 @@
 importScripts('helpers/backgroundHelper.js', 'helpers/pacScriptHelper.js', 'helpers/constants.js');
 
-let intervalId = null;
-
-// Добавляем обработчик ошибок прокси
 chrome.proxy.onProxyError.addListener((details) => {
     console.error('Proxy error:', details);
-    chrome.storage.local.set({ proxyError: details.error });
+    chrome.storage.local.set({ proxyError: details.error || 'Unknown proxy error' });
 });
 
 chrome.storage.onChanged.addListener(async (changes, namespace) => {
-    if (namespace !== 'local')
+    if (namespace !== 'local') {
         return;
+    }
 
-    if (!storageDataProps.some(key => key in changes))
+    if (!storageDataProps.some((key) => key in changes)) {
         return;
+    }
 
     try {
-        const data = await chrome.storage.local.get(storageProps);
-        restartProxyIfActive(data);
+        const data = await getStorage(storageProps);
+        await restartProxyIfActive(data);
     } catch (error) {
         console.error('Error in storage change handler:', error);
     }
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === "startProxy") {
-        chrome.storage.local.get(storageProps, (data) => {
-            if (!data.proxyHost || !data.proxyPort) {
-                console.error('Proxy configuration is incomplete');
-                sendResponse({ status: "failure", error: "Proxy configuration is incomplete" });
-                return;
-            }
-
-            try {
-                startProxy(
-                    data.proxyHost,
-                    data.proxyPort,
-                    data.customWhiteList,
-                    data.customBlackList,
-                    data.useAnywhere,
-                    data.addYbDomains);
-                intervalId = startIconSwitcher();
-                sendResponse({ status: "success" });
-            } catch (error) {
-                console.error('Error starting proxy:', error);
-                sendResponse({ status: "failure", error: error.message });
-            }
-        });
+    if (request.action === 'startProxy') {
+        void handleStartProxy(sendResponse);
         return true;
     }
 
-    if (request.action === "stopProxy") {
-        try {
-            stopProxy();
-            stopIconSwitcher(intervalId);
-            sendResponse({ status: "success" });
-        } catch (error) {
-            console.error('Error stopping proxy:', error);
-            sendResponse({ status: "failure", error: error.message });
-        }
+    if (request.action === 'stopProxy') {
+        void handleStopProxy(sendResponse);
+        return true;
+    }
+
+    if (request.action === 'getProxyState') {
+        void handleGetProxyState(sendResponse);
         return true;
     }
 
     return false;
 });
 
-function startProxy(host, port, customWhiteList, customBlackList, useAnywhere, addYbDomains) {
-    try {
-        const whiteList = buildWhitelist(customWhiteList, addYbDomains);
-        const blackList = buildBlacklist(customBlackList);
-        const config = getPacConfig(host, port, whiteList, blackList, useAnywhere);
-        
-        chrome.proxy.settings.set(config, () => {
-            if (chrome.runtime.lastError) {
-                console.error('Error setting proxy:', chrome.runtime.lastError);
-                throw new Error(chrome.runtime.lastError.message);
-            }
-            console.log(`Proxy successfully set to: ${host}:${port}`);
-            console.log('Whitelist:', whiteList);
-            console.log('Blacklist:', blackList);
-        });
-    } catch (error) {
-        console.error('Error in startProxy:', error);
-        throw error;
-    }
-}
+chrome.runtime.onStartup.addListener(() => {
+    void syncProxyState();
+});
 
-function stopProxy() {
-    try {
-        chrome.proxy.settings.clear({ scope: "regular" }, () => {
-            if (chrome.runtime.lastError) {
-                console.error('Error clearing proxy:', chrome.runtime.lastError);
-                throw new Error(chrome.runtime.lastError.message);
-            }
-            console.log("Proxy successfully disabled");
-        });
-    } catch (error) {
-        console.error('Error in stopProxy:', error);
-        throw error;
-    }
-}
+chrome.runtime.onInstalled.addListener(() => {
+    void syncProxyState();
+});
 
-function restartProxyIfActive(data) {
-    if (!data.isProxyActive)
-        return;
-
+async function handleStartProxy(sendResponse) {
     try {
-        stopProxy();
-        startProxy(
+        const data = await getStorage(storageProps);
+        await startProxy(
             data.proxyHost,
             data.proxyPort,
             data.customWhiteList,
             data.customBlackList,
             data.useAnywhere,
-            data.addYbDomains);
+            data.addYbDomains
+        );
+        sendResponse({ status: 'success' });
     } catch (error) {
-        console.error('Error in restartProxyIfActive:', error);
+        console.error('Error starting proxy:', error);
+        sendResponse({ status: 'failure', error: error.message });
     }
 }
 
-// Инициализация при запуске расширения
-chrome.storage.local.get(['isProxyActive'], (data) => {
-    if (!data.isProxyActive)
-        return;
-
+async function handleStopProxy(sendResponse) {
     try {
-        intervalId = startIconSwitcher();
+        await stopProxy();
+        sendResponse({ status: 'success' });
     } catch (error) {
-        console.error('Error starting icon switcher:', error);
+        console.error('Error stopping proxy:', error);
+        sendResponse({ status: 'failure', error: error.message });
     }
-});
+}
+
+async function handleGetProxyState(sendResponse) {
+    try {
+        const isActive = await isProxyEnabled();
+        await setStorage({ isProxyActive: isActive });
+        updateIcon(isActive);
+        sendResponse({ status: 'success', isActive });
+    } catch (error) {
+        console.error('Error getting proxy state:', error);
+        sendResponse({ status: 'failure', error: error.message });
+    }
+}
+
+async function startProxy(host, port, customWhiteList, customBlackList, useAnywhere, addYbDomains) {
+    const normalizedHost = validateProxyHost(host);
+    const normalizedPort = validateProxyPort(port);
+    const whiteList = buildWhitelist(customWhiteList, addYbDomains);
+    const blackList = buildBlacklist(customBlackList);
+    const config = getPacConfig(normalizedHost, normalizedPort, whiteList, blackList, useAnywhere);
+
+    await setProxySettings(config);
+    await setStorage({
+        isProxyActive: true,
+        proxyError: ''
+    });
+    updateIcon(true);
+    console.log(`Proxy successfully set to: ${normalizedHost}:${normalizedPort}`);
+}
+
+async function stopProxy() {
+    await clearProxySettings();
+    await setStorage({
+        isProxyActive: false,
+        proxyError: ''
+    });
+    updateIcon(false);
+    console.log('Proxy successfully disabled');
+}
+
+async function restartProxyIfActive(data) {
+    if (!data.isProxyActive) {
+        return;
+    }
+
+    await startProxy(
+        data.proxyHost,
+        data.proxyPort,
+        data.customWhiteList,
+        data.customBlackList,
+        data.useAnywhere,
+        data.addYbDomains
+    );
+}
+
+function getStorage(keys) {
+    return new Promise((resolve) => {
+        chrome.storage.local.get(keys, resolve);
+    });
+}
+
+function setStorage(data) {
+    return new Promise((resolve) => {
+        chrome.storage.local.set(data, resolve);
+    });
+}
+
+function setProxySettings(config) {
+    return new Promise((resolve, reject) => {
+        chrome.proxy.settings.set(config, () => {
+            if (chrome.runtime.lastError) {
+                reject(new Error(chrome.runtime.lastError.message));
+                return;
+            }
+
+            resolve();
+        });
+    });
+}
+
+function clearProxySettings() {
+    return new Promise((resolve, reject) => {
+        chrome.proxy.settings.clear({ scope: 'regular' }, () => {
+            if (chrome.runtime.lastError) {
+                reject(new Error(chrome.runtime.lastError.message));
+                return;
+            }
+
+            resolve();
+        });
+    });
+}
+
+function getProxySettings() {
+    return new Promise((resolve) => {
+        chrome.proxy.settings.get({ incognito: false }, resolve);
+    });
+}
+
+async function isProxyEnabled() {
+    const details = await getProxySettings();
+    return details.levelOfControl !== 'controlled_by_other_extensions'
+        && Boolean(details.value)
+        && details.value.mode === 'pac_script';
+}
+
+async function syncProxyState() {
+    try {
+        const isActive = await isProxyEnabled();
+        await setStorage({ isProxyActive: isActive });
+        updateIcon(isActive);
+    } catch (error) {
+        console.error('Error syncing proxy state:', error);
+    }
+}
+
+function validateProxyHost(host) {
+    const normalizedHost = String(host || '').trim();
+
+    if (!normalizedHost) {
+        throw new Error('Proxy host is required');
+    }
+
+    if (!/^[a-zA-Z0-9.-]+$/.test(normalizedHost)) {
+        throw new Error('Proxy host contains unsupported characters');
+    }
+
+    return normalizedHost;
+}
+
+function validateProxyPort(port) {
+    const normalizedPort = Number.parseInt(String(port || '').trim(), 10);
+
+    if (!Number.isInteger(normalizedPort) || normalizedPort < 1 || normalizedPort > 65535) {
+        throw new Error('Proxy port must be a number between 1 and 65535');
+    }
+
+    return normalizedPort;
+}
+
+void syncProxyState();

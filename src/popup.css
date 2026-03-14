@@ -4,6 +4,10 @@ body {
     font-family: Arial, sans-serif;
 }
 
+.hidden {
+    display: none;
+}
+
 input[type="text"],
 input[type="number"] {
     width: calc(100% - 20px);

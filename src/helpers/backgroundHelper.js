@@ -1,38 +1,31 @@
-function buildWhitelist(customWhiteList, addYbDomains) {
-    let result = customWhiteList.split(",").map(domain => domain.trim()).filter(Boolean);
-
-    if (addYbDomains === true) {
-        result.push(...youtubeDomains)
+function parseDomainList(rawValue) {
+    if (!rawValue) {
+        return [];
     }
 
-    return result;
+    return [...new Set(
+        rawValue
+            .split(/[\n,]+/)
+            .map((domain) => domain.trim())
+            .filter(Boolean)
+    )];
+}
+
+function buildWhitelist(customWhiteList, addYbDomains) {
+    const result = parseDomainList(customWhiteList);
+
+    if (addYbDomains === true) {
+        result.push(...youtubeDomains);
+    }
+
+    return [...new Set(result)];
 }
 
 function buildBlacklist(customBlackList) {
-    return customBlackList.split(",").map(domain => domain.trim()).filter(Boolean);;
+    return parseDomainList(customBlackList);
 }
-
-function startIconSwitcher() {
-    return setInterval(() => {
-        updateIcon(true);
-    }, 1000);
-}
-
-function stopIconSwitcher(intervalId) {
-    if (intervalId) {
-        clearInterval(intervalId);
-    }
-    updateIcon(false);
-}
-
-let animationFrame = 0;
 
 function updateIcon(isProxyActive) {
-    iconPath = 'icons/icon16.png';
-    if (isProxyActive === true) {
-        iconPath = iconFrames[animationFrame];
-        animationFrame = (animationFrame + 1) % iconFrames.length;
-    }
-
-    chrome.action.setIcon({ path: iconPath });
+    const path = isProxyActive === true ? activeIconPath : inactiveIconPath;
+    chrome.action.setIcon({ path });
 }

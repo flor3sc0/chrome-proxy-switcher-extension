@@ -7,18 +7,21 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('useAnywhere').addEventListener('change', saveOptions);
     document.getElementById('addYbDomains').addEventListener('change', saveOptions);
     document.getElementById('toggleProxy').addEventListener('change', toggleProxy);
-    
-    // Добавляем слушатель для ошибок прокси
+
     chrome.storage.onChanged.addListener((changes, namespace) => {
         if (namespace === 'local' && 'proxyError' in changes) {
-            showError(changes.proxyError.newValue);
+            if (changes.proxyError.newValue) {
+                showError(changes.proxyError.newValue);
+            } else {
+                clearError();
+            }
         }
     });
 });
 
 function saveOptions() {
-    const proxyHost = document.getElementById('proxyHost').value;
-    const proxyPort = document.getElementById('proxyPort').value;
+    const proxyHost = document.getElementById('proxyHost').value.trim();
+    const proxyPort = document.getElementById('proxyPort').value.trim();
     const useAnywhere = document.getElementById('useAnywhere').checked;
     const addYbDomains = document.getElementById('addYbDomains').checked;
     const customWhiteList = document.getElementById('customWhiteList').value;
@@ -28,19 +31,19 @@ function saveOptions() {
     updateHtmlCustomListContainer('blacklist-container', !useAnywhere);
 
     chrome.storage.local.set({
-        proxyHost: proxyHost,
-        proxyPort: proxyPort,
-        customWhiteList: customWhiteList,
-        customBlackList: customBlackList,
-        useAnywhere: useAnywhere,
-        addYbDomains: addYbDomains,
+        proxyHost,
+        proxyPort,
+        customWhiteList,
+        customBlackList,
+        useAnywhere,
+        addYbDomains
     });
 }
 
-
 function restoreOptions() {
     chrome.storage.local.get(storageProps, (items) => {
-        document.getElementById('toggleProxy').checked = items.isProxyActive || false;
+        const isActive = items.isProxyActive || false;
+        document.getElementById('toggleProxy').checked = isActive;
         document.getElementById('proxyHost').value = items.proxyHost || '';
         document.getElementById('proxyPort').value = items.proxyPort || '';
         document.getElementById('useAnywhere').checked = items.useAnywhere || false;
@@ -50,40 +53,60 @@ function restoreOptions() {
 
         updateHtmlCustomListContainer('whitelist-container', items.useAnywhere);
         updateHtmlCustomListContainer('blacklist-container', !items.useAnywhere);
-        updateCurrentStatus(items.isProxyActive);
+        updateCurrentStatus(isActive);
+        syncProxyState();
     });
 }
 
 function toggleProxy(event) {
     const isChecked = event.target.checked;
-    const action = isChecked ? "startProxy" : "stopProxy";
+    const action = isChecked ? 'startProxy' : 'stopProxy';
+    const validationError = isChecked ? validateProxyForm() : '';
 
-    // Очищаем предыдущую ошибку
     clearError();
 
-    chrome.runtime.sendMessage({ action: action }, (response) => {
-        if (response.status === "success") {
+    if (validationError) {
+        showError(validationError);
+        event.target.checked = false;
+        return;
+    }
+
+    event.target.disabled = true;
+
+    chrome.runtime.sendMessage({ action }, (response) => {
+        event.target.disabled = false;
+
+        if (chrome.runtime.lastError) {
+            showError(chrome.runtime.lastError.message);
+            event.target.checked = !isChecked;
+            updateCurrentStatus(!isChecked);
+            return;
+        }
+
+        if (response && response.status === 'success') {
             chrome.storage.local.set({ isProxyActive: isChecked });
             updateCurrentStatus(isChecked);
-        } else {
-            showError(response.error || "Unknown error occurred");
-            event.target.checked = !isChecked; // Возвращаем переключатель в исходное положение
+            return;
         }
+
+        showError((response && response.error) || 'Unknown error occurred');
+        event.target.checked = !isChecked;
+        updateCurrentStatus(!isChecked);
     });
 }
 
 function updateCurrentStatus(isActive) {
     if (isActive === true) {
-        updateHtmlStatusContainer("ACTIVE", "active", activeSvg);
+        updateHtmlStatusContainer('ACTIVE', 'active', activeSvg);
         return;
     }
 
-    updateHtmlStatusContainer("INACTIVE", "inactive", inactiveSvg);
+    updateHtmlStatusContainer('INACTIVE', 'inactive', inactiveSvg);
 }
 
 function updateHtmlStatusContainer(statusText, statusClass, svg) {
-    let statusDiv = document.getElementById('currentStatus');
-    let statusIcon = document.getElementById('statusIcon');
+    const statusDiv = document.getElementById('currentStatus');
+    const statusIcon = document.getElementById('statusIcon');
 
     statusDiv.textContent = `State: ${statusText}`;
     statusDiv.className = `status ${statusClass}`;
@@ -94,25 +117,49 @@ function updateHtmlCustomListContainer(containerId, isDisabled) {
     const container = document.getElementById(containerId);
     const elements = container.querySelectorAll('input, textarea');
 
-    elements.forEach(element => {
+    elements.forEach((element) => {
         element.disabled = isDisabled;
     });
 }
 
 function showError(errorMessage) {
     const errorDiv = document.getElementById('error-message');
-    if (!errorDiv) {
-        const newErrorDiv = document.createElement('div');
-        newErrorDiv.id = 'error-message';
-        newErrorDiv.className = 'error';
-        document.querySelector('.container').prepend(newErrorDiv);
-    }
-    document.getElementById('error-message').textContent = errorMessage;
+    errorDiv.textContent = errorMessage;
+    errorDiv.classList.remove('hidden');
 }
 
 function clearError() {
     const errorDiv = document.getElementById('error-message');
-    if (errorDiv) {
-        errorDiv.remove();
+    errorDiv.textContent = '';
+    errorDiv.classList.add('hidden');
+}
+
+function validateProxyForm() {
+    const host = document.getElementById('proxyHost').value.trim();
+    const port = Number.parseInt(document.getElementById('proxyPort').value.trim(), 10);
+
+    if (!host) {
+        return 'Proxy host is required';
     }
+
+    if (!/^[a-zA-Z0-9.-]+$/.test(host)) {
+        return 'Proxy host contains unsupported characters';
+    }
+
+    if (!Number.isInteger(port) || port < 1 || port > 65535) {
+        return 'Proxy port must be a number between 1 and 65535';
+    }
+
+    return '';
+}
+
+function syncProxyState() {
+    chrome.runtime.sendMessage({ action: 'getProxyState' }, (response) => {
+        if (chrome.runtime.lastError || !response || response.status !== 'success') {
+            return;
+        }
+
+        document.getElementById('toggleProxy').checked = response.isActive;
+        updateCurrentStatus(response.isActive);
+    });
 }
