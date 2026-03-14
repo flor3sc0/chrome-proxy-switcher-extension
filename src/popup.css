@@ -19,6 +19,24 @@ input[type="checkbox"] {
     margin-bottom: 12px;
 }
 
+button {
+    padding: 8px 12px;
+    border: 1px solid #b7c2d0;
+    border-radius: 8px;
+    background: #f4f7fb;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+button:hover {
+    background: #e9eef6;
+}
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
 label {
     font-size: 15px;
 }
@@ -34,7 +52,7 @@ label {
     border: 2px solid #ccc;
     border-radius: 10px;
     padding: 10px;
-  }
+}
 
 #customWhiteList {
     width: calc(100% - 10px);
@@ -59,6 +77,19 @@ label {
 
 #statusIcon {
     margin-left: 10px;
+}
+
+.field-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+}
+
+.compact-button {
+    padding: 4px 8px;
+    font-size: 12px;
+    line-height: 1.2;
 }
 
 .status.active {

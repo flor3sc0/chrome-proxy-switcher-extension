@@ -5,6 +5,7 @@
   "description": "An extension to set a proxy server, with whitelist.",
   "permissions": [
     "proxy",
+    "tabs",
     "storage"
   ],
   "background": {

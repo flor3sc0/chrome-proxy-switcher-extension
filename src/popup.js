@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('useAnywhere').addEventListener('change', saveOptions);
     document.getElementById('addYbDomains').addEventListener('change', saveOptions);
     document.getElementById('toggleProxy').addEventListener('change', toggleProxy);
+    document.getElementById('addCurrentDomain').addEventListener('click', addCurrentDomainToWhitelist);
 
     chrome.storage.onChanged.addListener((changes, namespace) => {
         if (namespace === 'local' && 'proxyError' in changes) {
@@ -115,9 +116,13 @@ function updateHtmlStatusContainer(statusText, statusClass, svg) {
 
 function updateHtmlCustomListContainer(containerId, isDisabled) {
     const container = document.getElementById(containerId);
-    const elements = container.querySelectorAll('input, textarea');
+    const elements = container.querySelectorAll('input, textarea, button');
 
     elements.forEach((element) => {
+        if (element.dataset.keepEnabled === 'true') {
+            return;
+        }
+
         element.disabled = isDisabled;
     });
 }
@@ -162,4 +167,70 @@ function syncProxyState() {
         document.getElementById('toggleProxy').checked = response.isActive;
         updateCurrentStatus(response.isActive);
     });
+}
+
+async function addCurrentDomainToWhitelist() {
+    clearError();
+
+    try {
+        const domain = await getCurrentTabDomain();
+        const whitelistField = document.getElementById('customWhiteList');
+        const entries = parseDomainEntries(whitelistField.value);
+
+        if (entries.includes(domain)) {
+            showError(`Domain "${domain}" is already in the whitelist`);
+            return;
+        }
+
+        entries.push(domain);
+        whitelistField.value = entries.join('\n');
+        saveOptions();
+    } catch (error) {
+        showError(error.message || 'Failed to add current site');
+    }
+}
+
+function getCurrentTabDomain() {
+    return new Promise((resolve, reject) => {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            if (chrome.runtime.lastError) {
+                reject(new Error(chrome.runtime.lastError.message));
+                return;
+            }
+
+            const tab = tabs && tabs[0];
+            const url = tab && tab.url;
+
+            if (!url) {
+                reject(new Error('Could not read the current tab URL'));
+                return;
+            }
+
+            try {
+                const parsedUrl = new URL(url);
+
+                if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+                    reject(new Error('Only http and https pages can be added to the whitelist'));
+                    return;
+                }
+
+                resolve(parsedUrl.hostname);
+            } catch (error) {
+                reject(new Error('Could not parse the current tab URL'));
+            }
+        });
+    });
+}
+
+function parseDomainEntries(value) {
+    if (!value) {
+        return [];
+    }
+
+    return [...new Set(
+        value
+            .split(/[\n,]+/)
+            .map((entry) => entry.trim())
+            .filter(Boolean)
+    )];
 }

@@ -1,5 +1,8 @@
 importScripts('helpers/backgroundHelper.js', 'helpers/pacScriptHelper.js', 'helpers/constants.js');
 
+const RESTART_PROXY_DEBOUNCE_MS = 500;
+let restartProxyTimeoutId = null;
+
 chrome.proxy.onProxyError.addListener((details) => {
     console.error('Proxy error:', details);
     chrome.storage.local.set({ proxyError: details.error || 'Unknown proxy error' });
@@ -16,7 +19,7 @@ chrome.storage.onChanged.addListener(async (changes, namespace) => {
 
     try {
         const data = await getStorage(storageProps);
-        await restartProxyIfActive(data);
+        scheduleProxyRestart(data);
     } catch (error) {
         console.error('Error in storage change handler:', error);
     }
@@ -120,14 +123,18 @@ async function restartProxyIfActive(data) {
         return;
     }
 
-    await startProxy(
-        data.proxyHost,
-        data.proxyPort,
-        data.customWhiteList,
-        data.customBlackList,
-        data.useAnywhere,
-        data.addYbDomains
-    );
+    try {
+        await startProxy(
+            data.proxyHost,
+            data.proxyPort,
+            data.customWhiteList,
+            data.customBlackList,
+            data.useAnywhere,
+            data.addYbDomains
+        );
+    } catch (error) {
+        console.error('Error restarting active proxy:', error);
+    }
 }
 
 function getStorage(keys) {
@@ -137,9 +144,27 @@ function getStorage(keys) {
 }
 
 function setStorage(data) {
-    return new Promise((resolve) => {
-        chrome.storage.local.set(data, resolve);
+    return new Promise((resolve, reject) => {
+        chrome.storage.local.set(data, () => {
+            if (chrome.runtime.lastError) {
+                reject(new Error(chrome.runtime.lastError.message));
+                return;
+            }
+
+            resolve();
+        });
     });
+}
+
+function scheduleProxyRestart(data) {
+    if (restartProxyTimeoutId) {
+        clearTimeout(restartProxyTimeoutId);
+    }
+
+    restartProxyTimeoutId = setTimeout(() => {
+        restartProxyTimeoutId = null;
+        void restartProxyIfActive(data);
+    }, RESTART_PROXY_DEBOUNCE_MS);
 }
 
 function setProxySettings(config) {
