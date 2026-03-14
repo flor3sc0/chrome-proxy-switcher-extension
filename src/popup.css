@@ -61,7 +61,7 @@ label {
     resize: vertical;
 }
 
-#customBlackList {
+#customBypassList {
     width: calc(100% - 10px);
     height: 120px;
     font-size: 15px;

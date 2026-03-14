@@ -11,18 +11,12 @@ function parseDomainList(rawValue) {
     )];
 }
 
-function buildWhitelist(customWhiteList, addYbDomains) {
-    const result = parseDomainList(customWhiteList);
-
-    if (addYbDomains === true) {
-        result.push(...youtubeDomains);
-    }
-
-    return [...new Set(result)];
+function buildWhitelist(customWhiteList) {
+    return parseDomainList(customWhiteList);
 }
 
-function buildBlacklist(customBlackList) {
-    return parseDomainList(customBlackList);
+function buildBypassList(customBypassList) {
+    return parseDomainList(customBypassList);
 }
 
 function updateIcon(isProxyActive) {

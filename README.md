@@ -6,8 +6,7 @@ Small Chrome extension for switching a proxy on and off from the toolbar popup.
 
 - Sets a proxy server through the Chrome `proxy` API
 - Supports a whitelist mode where only selected domains go through the proxy
-- Supports a global mode where everything goes through the proxy except a blacklist
-- Can add a built-in list of YouTube-related domains to the whitelist
+- Supports a global mode where everything goes through the proxy except excluded domains
 - Stores settings in `chrome.storage.local`
 
 ## Project structure
@@ -21,6 +20,6 @@ Small Chrome extension for switching a proxy on and off from the toolbar popup.
 
 ## Notes
 
-- Whitelist and blacklist accept commas and new lines as separators.
+- Whitelist and excluded domains accept commas and new lines as separators.
 - If whitelist mode is selected and the whitelist is empty, traffic stays `DIRECT`.
 - The popup synchronizes its toggle with the actual Chrome proxy state on load.

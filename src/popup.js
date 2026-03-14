@@ -3,9 +3,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('proxyHost').addEventListener('input', saveOptions);
     document.getElementById('proxyPort').addEventListener('input', saveOptions);
     document.getElementById('customWhiteList').addEventListener('input', saveOptions);
-    document.getElementById('customBlackList').addEventListener('input', saveOptions);
+    document.getElementById('customBypassList').addEventListener('input', saveOptions);
     document.getElementById('useAnywhere').addEventListener('change', saveOptions);
-    document.getElementById('addYbDomains').addEventListener('change', saveOptions);
     document.getElementById('toggleProxy').addEventListener('change', toggleProxy);
     document.getElementById('addCurrentDomain').addEventListener('click', addCurrentDomainToWhitelist);
 
@@ -24,20 +23,18 @@ function saveOptions() {
     const proxyHost = document.getElementById('proxyHost').value.trim();
     const proxyPort = document.getElementById('proxyPort').value.trim();
     const useAnywhere = document.getElementById('useAnywhere').checked;
-    const addYbDomains = document.getElementById('addYbDomains').checked;
     const customWhiteList = document.getElementById('customWhiteList').value;
-    const customBlackList = document.getElementById('customBlackList').value;
+    const customBypassList = document.getElementById('customBypassList').value;
 
     updateHtmlCustomListContainer('whitelist-container', useAnywhere);
-    updateHtmlCustomListContainer('blacklist-container', !useAnywhere);
+    updateHtmlCustomListContainer('bypass-list-container', !useAnywhere);
 
     chrome.storage.local.set({
         proxyHost,
         proxyPort,
         customWhiteList,
-        customBlackList,
-        useAnywhere,
-        addYbDomains
+        customBypassList,
+        useAnywhere
     });
 }
 
@@ -48,12 +45,11 @@ function restoreOptions() {
         document.getElementById('proxyHost').value = items.proxyHost || '';
         document.getElementById('proxyPort').value = items.proxyPort || '';
         document.getElementById('useAnywhere').checked = items.useAnywhere || false;
-        document.getElementById('addYbDomains').checked = items.addYbDomains || false;
         document.getElementById('customWhiteList').value = items.customWhiteList || '';
-        document.getElementById('customBlackList').value = items.customBlackList || '';
+        document.getElementById('customBypassList').value = items.customBypassList || '';
 
         updateHtmlCustomListContainer('whitelist-container', items.useAnywhere);
-        updateHtmlCustomListContainer('blacklist-container', !items.useAnywhere);
+        updateHtmlCustomListContainer('bypass-list-container', !items.useAnywhere);
         updateCurrentStatus(isActive);
         syncProxyState();
     });
