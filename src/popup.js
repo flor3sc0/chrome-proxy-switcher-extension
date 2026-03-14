@@ -214,7 +214,7 @@ function getCurrentTabDomain() {
                     return;
                 }
 
-                resolve(parsedUrl.hostname);
+                resolve(normalizeDomainForWhitelist(parsedUrl.hostname));
             } catch (error) {
                 reject(new Error('Could not parse the current tab URL'));
             }
@@ -233,4 +233,12 @@ function parseDomainEntries(value) {
             .map((entry) => entry.trim())
             .filter(Boolean)
     )];
+}
+
+function normalizeDomainForWhitelist(hostname) {
+    if (hostname.startsWith('www.')) {
+        return `*.${hostname.slice(4)}`;
+    }
+
+    return hostname;
 }
