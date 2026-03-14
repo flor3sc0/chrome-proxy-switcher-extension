@@ -1,23 +1,31 @@
 function getPacConfig(host, port, whiteList, blackList, useAnywhere) {
-    let pacScriptData = generatePacScriptForAllDomains(host, port);
+    let pacScriptData = generateDirectScript();
 
-    if (useAnywhere === false && whiteList.length !== 0) {
+    if (useAnywhere === true) {
+        pacScriptData = blackList.length !== 0
+            ? generatePacScriptForBlackList(host, port, blackList)
+            : generatePacScriptForAllDomains(host, port);
+    } else if (whiteList.length !== 0) {
         pacScriptData = generatePacScriptForWhiteList(host, port, whiteList);
-    }
-
-    if (useAnywhere === true && blackList.length !== 0) {
-        pacScriptData = generatePacScriptForBlackList(host, port, blackList);
     }
 
     return {
         value: {
-            mode: "pac_script",
+            mode: 'pac_script',
             pacScript: {
                 data: pacScriptData
             }
         },
-        scope: "regular"
+        scope: 'regular'
+    };
+}
+
+function generateDirectScript() {
+    return `
+    function FindProxyForURL(url, host) {
+        return "DIRECT";
     }
+    `;
 }
 
 function generatePacScriptForAllDomains(host, port) {

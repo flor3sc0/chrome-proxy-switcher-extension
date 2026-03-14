@@ -9,10 +9,17 @@ const storageDataProps = [
 
 const storageProps = [...storageDataProps, 'isProxyActive'];
 
-const iconFrames = [
-  'icons/icon16.png',
-  'icons/active_icon16.png',
-];
+const inactiveIconPath = {
+  16: 'icons/icon16.png',
+  48: 'icons/icon48.png',
+  128: 'icons/icon128.png'
+};
+
+const activeIconPath = {
+  16: 'icons/active_icon16.png',
+  48: 'icons/icon48.png',
+  128: 'icons/icon128.png'
+};
 
 const youtubeDomains = [
   '*.googlevideo.com',

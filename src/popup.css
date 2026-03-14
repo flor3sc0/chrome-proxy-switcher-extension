@@ -4,6 +4,10 @@ body {
     font-family: Arial, sans-serif;
 }
 
+.hidden {
+    display: none;
+}
+
 input[type="text"],
 input[type="number"] {
     width: calc(100% - 20px);
@@ -13,6 +17,24 @@ input[type="number"] {
 
 input[type="checkbox"] {
     margin-bottom: 12px;
+}
+
+button {
+    padding: 8px 12px;
+    border: 1px solid #b7c2d0;
+    border-radius: 8px;
+    background: #f4f7fb;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+button:hover {
+    background: #e9eef6;
+}
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 label {
@@ -30,7 +52,7 @@ label {
     border: 2px solid #ccc;
     border-radius: 10px;
     padding: 10px;
-  }
+}
 
 #customWhiteList {
     width: calc(100% - 10px);
@@ -55,6 +77,19 @@ label {
 
 #statusIcon {
     margin-left: 10px;
+}
+
+.field-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+}
+
+.compact-button {
+    padding: 4px 8px;
+    font-size: 12px;
+    line-height: 1.2;
 }
 
 .status.active {
@@ -120,4 +155,26 @@ input:checked+.slider:before {
 
 .slider.round:before {
     border-radius: 50%;
+}
+
+.error {
+    background-color: #ffebee;
+    color: #c62828;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    border: 1px solid #ef9a9a;
+    font-size: 14px;
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

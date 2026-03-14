@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+    <title>Proxy switch with whitelist</title>
     <link rel="stylesheet" type="text/css" href="popup.css">
 </head>
 
 <body>
+    <div id="error-message" class="error hidden" aria-live="polite"></div>
     <div id="toggle-container">
         <label class="switch">
             <input type="checkbox" id="toggleProxy">
@@ -35,20 +37,23 @@
                 <input type="checkbox" id="addYbDomains">
                 <label for="addYbDomains">Add <b>Youtube</b> domains to whitelist</label>
             </div>
+            <div class="field-label-row">
+                <label for="customWhiteList"><b>Whitelist</b></label>
+                <button type="button" id="addCurrentDomain" class="compact-button" data-keep-enabled="true">+ current site</button>
+            </div>
             <div>
-                <label for="customWhiteList"><b>Whitelist</b>:</label>
-                <textarea id="customWhiteList" placeholder="exapmle.org, *.example.com, ..."></textarea>
+                <textarea id="customWhiteList" placeholder="example.org, *.example.com"></textarea>
             </div>
         </div>
         <div id="blacklist-container">
             <div>
                 <label for="customBlackList"><b>Blacklist</b>:</label>
-                <textarea id="customBlackList" placeholder="exapmle.org, *.example.com, ..."></textarea>
+                <textarea id="customBlackList" placeholder="example.org, *.example.com"></textarea>
             </div>
         </div>
     </div>
-    <script src="popup.js"></script>
     <script src="helpers/constants.js"></script>
+    <script src="popup.js"></script>
 </body>
 
 </html>
