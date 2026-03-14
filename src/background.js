@@ -1,4 +1,4 @@
-importScripts('helpers/backgroundHelper.js', 'helpers/pacScriptHelper.js', 'helpers/constants.js');
+importScripts('helpers/domainListHelper.js', 'helpers/backgroundHelper.js', 'helpers/pacScriptHelper.js', 'helpers/constants.js');
 
 const RESTART_PROXY_DEBOUNCE_MS = 500;
 let restartProxyTimeoutId = null;

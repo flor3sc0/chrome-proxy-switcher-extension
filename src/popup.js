@@ -1,12 +1,24 @@
+const elements = {};
+
 document.addEventListener('DOMContentLoaded', () => {
+    cacheElements();
     restoreOptions();
-    document.getElementById('proxyHost').addEventListener('input', saveOptions);
-    document.getElementById('proxyPort').addEventListener('input', saveOptions);
-    document.getElementById('customWhiteList').addEventListener('input', saveOptions);
-    document.getElementById('customBypassList').addEventListener('input', saveOptions);
-    document.getElementById('useAnywhere').addEventListener('change', saveOptions);
-    document.getElementById('toggleProxy').addEventListener('change', toggleProxy);
-    document.getElementById('addCurrentDomain').addEventListener('click', addCurrentDomainToWhitelist);
+
+    [
+        elements.proxyHost,
+        elements.proxyPort,
+        elements.customWhiteList,
+        elements.customBypassList
+    ].forEach((element) => {
+        element.addEventListener('input', saveOptions);
+    });
+
+    [elements.useAnywhere].forEach((element) => {
+        element.addEventListener('change', saveOptions);
+    });
+
+    elements.toggleProxy.addEventListener('change', toggleProxy);
+    elements.addCurrentDomain.addEventListener('click', addCurrentDomainToWhitelist);
 
     chrome.storage.onChanged.addListener((changes, namespace) => {
         if (namespace === 'local' && 'proxyError' in changes) {
@@ -19,40 +31,56 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+function cacheElements() {
+    elements.proxyHost = document.getElementById('proxyHost');
+    elements.proxyPort = document.getElementById('proxyPort');
+    elements.customWhiteList = document.getElementById('customWhiteList');
+    elements.customBypassList = document.getElementById('customBypassList');
+    elements.useAnywhere = document.getElementById('useAnywhere');
+    elements.toggleProxy = document.getElementById('toggleProxy');
+    elements.addCurrentDomain = document.getElementById('addCurrentDomain');
+    elements.currentStatus = document.getElementById('currentStatus');
+    elements.statusIcon = document.getElementById('statusIcon');
+    elements.errorMessage = document.getElementById('error-message');
+}
+
 function saveOptions() {
-    const proxyHost = document.getElementById('proxyHost').value.trim();
-    const proxyPort = document.getElementById('proxyPort').value.trim();
-    const useAnywhere = document.getElementById('useAnywhere').checked;
-    const customWhiteList = document.getElementById('customWhiteList').value;
-    const customBypassList = document.getElementById('customBypassList').value;
-
-    updateHtmlCustomListContainer('whitelist-container', useAnywhere);
-    updateHtmlCustomListContainer('bypass-list-container', !useAnywhere);
-
-    chrome.storage.local.set({
-        proxyHost,
-        proxyPort,
-        customWhiteList,
-        customBypassList,
-        useAnywhere
-    });
+    const options = getOptionsFromForm();
+    applyModeState(options.useAnywhere);
+    chrome.storage.local.set(options);
 }
 
 function restoreOptions() {
     chrome.storage.local.get(storageProps, (items) => {
-        const isActive = items.isProxyActive || false;
-        document.getElementById('toggleProxy').checked = isActive;
-        document.getElementById('proxyHost').value = items.proxyHost || '';
-        document.getElementById('proxyPort').value = items.proxyPort || '';
-        document.getElementById('useAnywhere').checked = items.useAnywhere || false;
-        document.getElementById('customWhiteList').value = items.customWhiteList || '';
-        document.getElementById('customBypassList').value = items.customBypassList || '';
-
-        updateHtmlCustomListContainer('whitelist-container', items.useAnywhere);
-        updateHtmlCustomListContainer('bypass-list-container', !items.useAnywhere);
-        updateCurrentStatus(isActive);
+        applyOptionsToForm(items);
+        applyModeState(items.useAnywhere || false);
+        updateCurrentStatus(items.isProxyActive || false);
         syncProxyState();
     });
+}
+
+function getOptionsFromForm() {
+    return {
+        proxyHost: elements.proxyHost.value.trim(),
+        proxyPort: elements.proxyPort.value.trim(),
+        customWhiteList: elements.customWhiteList.value,
+        customBypassList: elements.customBypassList.value,
+        useAnywhere: elements.useAnywhere.checked
+    };
+}
+
+function applyOptionsToForm(items) {
+    elements.toggleProxy.checked = items.isProxyActive || false;
+    elements.proxyHost.value = items.proxyHost || '';
+    elements.proxyPort.value = items.proxyPort || '';
+    elements.useAnywhere.checked = items.useAnywhere || false;
+    elements.customWhiteList.value = items.customWhiteList || '';
+    elements.customBypassList.value = items.customBypassList || '';
+}
+
+function applyModeState(useAnywhere) {
+    updateHtmlCustomListContainer('whitelist-container', useAnywhere);
+    updateHtmlCustomListContainer('bypass-list-container', !useAnywhere);
 }
 
 function toggleProxy(event) {
@@ -102,42 +130,37 @@ function updateCurrentStatus(isActive) {
 }
 
 function updateHtmlStatusContainer(statusText, statusClass, svg) {
-    const statusDiv = document.getElementById('currentStatus');
-    const statusIcon = document.getElementById('statusIcon');
-
-    statusDiv.textContent = `State: ${statusText}`;
-    statusDiv.className = `status ${statusClass}`;
-    statusIcon.innerHTML = svg;
+    elements.currentStatus.textContent = statusText;
+    elements.currentStatus.className = `status ${statusClass}`;
+    elements.statusIcon.innerHTML = svg;
 }
 
 function updateHtmlCustomListContainer(containerId, isDisabled) {
     const container = document.getElementById(containerId);
-    const elements = container.querySelectorAll('input, textarea, button');
+    const controls = container.querySelectorAll('input, textarea, button');
 
-    elements.forEach((element) => {
-        if (element.dataset.keepEnabled === 'true') {
+    controls.forEach((control) => {
+        if (control.dataset.keepEnabled === 'true') {
             return;
         }
 
-        element.disabled = isDisabled;
+        control.disabled = isDisabled;
     });
 }
 
 function showError(errorMessage) {
-    const errorDiv = document.getElementById('error-message');
-    errorDiv.textContent = errorMessage;
-    errorDiv.classList.remove('hidden');
+    elements.errorMessage.textContent = errorMessage;
+    elements.errorMessage.classList.remove('hidden');
 }
 
 function clearError() {
-    const errorDiv = document.getElementById('error-message');
-    errorDiv.textContent = '';
-    errorDiv.classList.add('hidden');
+    elements.errorMessage.textContent = '';
+    elements.errorMessage.classList.add('hidden');
 }
 
 function validateProxyForm() {
-    const host = document.getElementById('proxyHost').value.trim();
-    const port = Number.parseInt(document.getElementById('proxyPort').value.trim(), 10);
+    const host = elements.proxyHost.value.trim();
+    const port = Number.parseInt(elements.proxyPort.value.trim(), 10);
 
     if (!host) {
         return 'Proxy host is required';
@@ -160,7 +183,7 @@ function syncProxyState() {
             return;
         }
 
-        document.getElementById('toggleProxy').checked = response.isActive;
+        elements.toggleProxy.checked = response.isActive;
         updateCurrentStatus(response.isActive);
     });
 }
@@ -170,8 +193,7 @@ async function addCurrentDomainToWhitelist() {
 
     try {
         const domain = await getCurrentTabDomain();
-        const whitelistField = document.getElementById('customWhiteList');
-        const entries = parseDomainEntries(whitelistField.value);
+        const entries = parseDomainList(elements.customWhiteList.value);
 
         if (entries.includes(domain)) {
             showError(`Domain "${domain}" is already in the whitelist`);
@@ -179,7 +201,7 @@ async function addCurrentDomainToWhitelist() {
         }
 
         entries.push(domain);
-        whitelistField.value = entries.join('\n');
+        elements.customWhiteList.value = entries.join('\n');
         saveOptions();
     } catch (error) {
         showError(error.message || 'Failed to add current site');
@@ -216,25 +238,4 @@ function getCurrentTabDomain() {
             }
         });
     });
-}
-
-function parseDomainEntries(value) {
-    if (!value) {
-        return [];
-    }
-
-    return [...new Set(
-        value
-            .split(/[\n,]+/)
-            .map((entry) => entry.trim())
-            .filter(Boolean)
-    )];
-}
-
-function normalizeDomainForWhitelist(hostname) {
-    if (hostname.startsWith('www.')) {
-        return `*.${hostname.slice(4)}`;
-    }
-
-    return hostname;
 }
