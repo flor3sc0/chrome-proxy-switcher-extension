@@ -80,7 +80,7 @@ body {
 .eyebrow,
 .section-kicker {
     margin: 0 0 6px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -94,11 +94,8 @@ body {
     line-height: 1;
 }
 
-.hero-text {
-    margin: 0;
-    color: var(--muted);
-    font-size: 14px;
-    line-height: 1.45;
+.section-heading h2 {
+    font-size: 22px;
 }
 
 #toggle-container {
@@ -287,6 +284,7 @@ textarea:disabled {
     gap: 6px;
     cursor: help;
 }
+
 
 .info-label::after {
     content: "?";
