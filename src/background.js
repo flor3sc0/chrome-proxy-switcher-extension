@@ -1,4 +1,4 @@
-importScripts('helpers/backgroundHelper.js', 'helpers/pacScriptHelper.js', 'helpers/constants.js');
+importScripts('helpers/domainListHelper.js', 'helpers/backgroundHelper.js', 'helpers/pacScriptHelper.js', 'helpers/constants.js');
 
 const RESTART_PROXY_DEBOUNCE_MS = 500;
 let restartProxyTimeoutId = null;
@@ -59,9 +59,8 @@ async function handleStartProxy(sendResponse) {
             data.proxyHost,
             data.proxyPort,
             data.customWhiteList,
-            data.customBlackList,
-            data.useAnywhere,
-            data.addYbDomains
+            data.customBypassList,
+            data.useAnywhere
         );
         sendResponse({ status: 'success' });
     } catch (error) {
@@ -92,12 +91,12 @@ async function handleGetProxyState(sendResponse) {
     }
 }
 
-async function startProxy(host, port, customWhiteList, customBlackList, useAnywhere, addYbDomains) {
+async function startProxy(host, port, customWhiteList, customBypassList, useAnywhere) {
     const normalizedHost = validateProxyHost(host);
     const normalizedPort = validateProxyPort(port);
-    const whiteList = buildWhitelist(customWhiteList, addYbDomains);
-    const blackList = buildBlacklist(customBlackList);
-    const config = getPacConfig(normalizedHost, normalizedPort, whiteList, blackList, useAnywhere);
+    const whiteList = buildWhitelist(customWhiteList);
+    const bypassList = buildBypassList(customBypassList);
+    const config = getPacConfig(normalizedHost, normalizedPort, whiteList, bypassList, useAnywhere);
 
     await setProxySettings(config);
     await setStorage({
@@ -128,9 +127,8 @@ async function restartProxyIfActive(data) {
             data.proxyHost,
             data.proxyPort,
             data.customWhiteList,
-            data.customBlackList,
-            data.useAnywhere,
-            data.addYbDomains
+            data.customBypassList,
+            data.useAnywhere
         );
     } catch (error) {
         console.error('Error restarting active proxy:', error);

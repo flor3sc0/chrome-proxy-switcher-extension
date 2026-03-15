@@ -3,56 +3,83 @@
 
 <head>
     <title>Proxy switch with whitelist</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="popup.css">
 </head>
 
 <body>
-    <div id="error-message" class="error hidden" aria-live="polite"></div>
-    <div id="toggle-container">
-        <label class="switch">
-            <input type="checkbox" id="toggleProxy">
-            <span class="slider round"></span>
-        </label>
-        <div id="status-container">
-            <span id="currentStatus">State: INACTIVE</span>
-            <span id="statusIcon"></span>
-        </div>
-    </div>
-    <div id="settings-container">
-        <h3>Settings</h3>
-        <div>
-            <label for="proxyHost">Host:</label>
-            <input type="text" id="proxyHost">
-        </div>
-        <div>
-            <label for="proxyPort">Port:</label>
-            <input type="number" id="proxyPort">
-        </div>
-        <div>
-            <input type="checkbox" id="useAnywhere">
-            <label for="useAnywhere">Use anywhere</label>
-        </div>
-        <div id="whitelist-container">
-            <div>
-                <input type="checkbox" id="addYbDomains">
-                <label for="addYbDomains">Add <b>Youtube</b> domains to whitelist</label>
+    <div class="popup-shell">
+        <div class="hero-card">
+            <div class="hero-copy">
+                <p class="eyebrow info-label" title="Switch the proxy instantly and decide which domains go through it.">Proxy control</p>
             </div>
-            <div class="field-label-row">
-                <label for="customWhiteList"><b>Whitelist</b></label>
-                <button type="button" id="addCurrentDomain" class="compact-button" data-keep-enabled="true">+ current site</button>
-            </div>
-            <div>
-                <textarea id="customWhiteList" placeholder="example.org, *.example.com"></textarea>
+            <div id="toggle-container">
+                <label class="switch">
+                    <input type="checkbox" id="toggleProxy">
+                    <span class="slider round"></span>
+                </label>
+                <div id="status-container">
+                    <span id="currentStatus">INACTIVE</span>
+                    <span id="statusIcon"></span>
+                </div>
             </div>
         </div>
-        <div id="blacklist-container">
-            <div>
-                <label for="customBlackList"><b>Blacklist</b>:</label>
-                <textarea id="customBlackList" placeholder="example.org, *.example.com"></textarea>
+
+        <div id="error-message" class="error hidden" aria-live="polite"></div>
+
+        <div id="settings-container">
+            <div class="section-heading">
+                <p class="eyebrow">Proxy settings</p>
+            </div>
+
+            <div class="field-grid">
+                <div class="field-group">
+                    <label for="proxyHost">Host</label>
+                    <input type="text" id="proxyHost" placeholder="proxy.example.com">
+                </div>
+                <div class="field-group field-group-small">
+                    <label for="proxyPort">Port</label>
+                    <input type="number" id="proxyPort" placeholder="8080">
+                </div>
+            </div>
+
+            <label class="toggle-row" for="useAnywhere">
+                <div>
+                    <span class="toggle-title">Use anywhere</span>
+                </div>
+                <input type="checkbox" id="useAnywhere">
+            </label>
+
+            <div class="lists-grid">
+                <div id="whitelist-container" class="list-card">
+                    <div class="field-label-row">
+                        <div>
+                            <label for="customWhiteList" class="info-label" title="Only these domains use the proxy when global mode is off."><b>Whitelist</b></label>
+                        </div>
+                        <button type="button" id="addCurrentDomain" class="compact-button" data-keep-enabled="true">+ current site</button>
+                    </div>
+                    <div>
+                        <textarea id="customWhiteList" placeholder="example.org, *.example.com"></textarea>
+                    </div>
+                </div>
+
+                <div id="bypass-list-container" class="list-card">
+                    <div class="field-label-row field-label-row-stack">
+                        <div>
+                            <label for="customBypassList" class="info-label" title="These domains bypass the proxy when global mode is on."><b>Excluded domains</b></label>
+                        </div>
+                    </div>
+                    <div>
+                        <textarea id="customBypassList" placeholder="example.org, *.example.com"></textarea>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
     <script src="helpers/constants.js"></script>
+    <script src="helpers/domainListHelper.js"></script>
     <script src="popup.js"></script>
 </body>
 

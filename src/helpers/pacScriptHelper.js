@@ -1,9 +1,9 @@
-function getPacConfig(host, port, whiteList, blackList, useAnywhere) {
+function getPacConfig(host, port, whiteList, bypassList, useAnywhere) {
     let pacScriptData = generateDirectScript();
 
     if (useAnywhere === true) {
-        pacScriptData = blackList.length !== 0
-            ? generatePacScriptForBlackList(host, port, blackList)
+        pacScriptData = bypassList.length !== 0
+            ? generatePacScriptForBypassList(host, port, bypassList)
             : generatePacScriptForAllDomains(host, port);
     } else if (whiteList.length !== 0) {
         pacScriptData = generatePacScriptForWhiteList(host, port, whiteList);
@@ -51,13 +51,13 @@ function generatePacScriptForWhiteList(host, port, whiteList) {
     `;
 }
 
-function generatePacScriptForBlackList(host, port, blackList) {
+function generatePacScriptForBypassList(host, port, bypassList) {
     return `
     function FindProxyForURL(url, host) {
-        const blackList = ${JSON.stringify(blackList)};
+        const bypassList = ${JSON.stringify(bypassList)};
 
-        for (var i = 0; i < blackList.length; i++) {
-            if (shExpMatch(host, blackList[i])) {
+        for (var i = 0; i < bypassList.length; i++) {
+            if (shExpMatch(host, bypassList[i])) {
                 return "DIRECT";
             }
         }
